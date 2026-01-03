@@ -1,7 +1,6 @@
 <?php
 
+use App\Http\Controllers\chirpcontroller;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home');
-});
+Route::get('/', [chirpcontroller::class, 'index']);
