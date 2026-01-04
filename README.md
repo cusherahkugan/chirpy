@@ -12,7 +12,6 @@ It was originally created as a learning project following the **Laravel Learn fr
 - **Posts** – Create posts, like posts, and add comments.  
 - **Responsive Design** – Built with Tailwind CSS and DaisyUI for a modern look.  
 - **SQLite Database** – Lightweight, fast, and easy to set up.  
-- **Notifications & Feedback** – Success toasts for interactions like posting or liking.  
 
 ---
 
