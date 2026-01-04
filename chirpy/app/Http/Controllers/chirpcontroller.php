@@ -1,118 +1,80 @@
 <?php
-
 namespace App\Http\Controllers;
-use App\Models\Chirp;
 
+use App\Models\Chirp;
 use Illuminate\Http\Request;
 
-class chirpcontroller extends Controller
+class ChirpController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-      
-      $chirps = Chirp::with('user')
+        $chirps = Chirp::with(['user', 'likes', 'comments'])
+            ->withCount(['likes', 'comments'])
             ->latest()
-            ->take(50)  // Limit to 50 most recent chirps
+            ->take(50)
             ->get();
 
         return view('home', ['chirps' => $chirps]);
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'message' => 'required|string|max:255',
+        ]);
+
+        auth()->user()->chirps()->create($validated);
+
+        return redirect('/')->with('success', 'Your chirp has been posted!');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-   
-
-
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'message' => 'required|string|max:255',
-    ]);
-
-    // Use the authenticated user
-    auth()->user()->chirps()->create($validated);
-
-    return redirect('/')->with('success', 'Your chirp has been posted!');
-}
-
-public function edit(Chirp $chirp)
-{
-    $this->authorize('update', $chirp);
-
-    return view('chirps.edit', compact('chirp'));
-}
-
-public function update(Request $request, Chirp $chirp)
-{
-    $this->authorize('update', $chirp);
-
-    $validated = $request->validate([
-        'message' => 'required|string|max:255',
-    ]);
-
-    $chirp->update($validated);
-
-    return redirect('/')->with('success', 'Chirp updated!');
-}
-
-public function destroy(Chirp $chirp)
-{
-    $this->authorize('delete', $chirp);
-
-    $chirp->delete();
-
-    return redirect('/')->with('success', 'Chirp deleted!');
-}
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Chirp $chirp)
     {
-        //
+        $this->authorize('update', $chirp);
+
+        return view('chirps.edit', compact('chirp'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-//     public function edit(Chirp $chirp)
-// {
-//     // We'll add authorization in lesson 11
-//     return view('chirps.edit', compact('chirp'));
-// }
- 
-// public function update(Request $request, Chirp $chirp)
-// {
-//         $this->authorize('update', $chirp);
+    public function update(Request $request, Chirp $chirp)
+    {
+        $this->authorize('update', $chirp);
 
-//     // Validate
-//     $validated = $request->validate([
-//         'message' => 'required|string|max:255',
-//     ]);
- 
-//     // Update
-//     $chirp->update($validated);
- 
-//     return redirect('/')->with('success', 'Chirp updated!');
-// }
- 
-// public function destroy(Chirp $chirp)
-// {
-//     $chirp->delete();
- 
-//     return redirect('/')->with('success', 'Chirp deleted!');
-// }
+        $validated = $request->validate([
+            'message' => 'required|string|max:255',
+        ]);
+
+        $chirp->update($validated);
+
+        return redirect('/')->with('success', 'Chirp updated!');
+    }
+
+    public function destroy(Chirp $chirp)
+    {
+        $this->authorize('delete', $chirp);
+
+        $chirp->delete();
+
+        return redirect('/')->with('success', 'Chirp deleted!');
+    }
+
+    public function like(Chirp $chirp)
+    {
+        $user = auth()->user();
+
+        if ($user->hasLiked($chirp)) {
+            $user->likes()->where('chirp_id', $chirp->id)->delete();
+        } else {
+            $user->likes()->create(['chirp_id' => $chirp->id]);
+        }
+
+        return back();
+    }
+
+    public function show(Chirp $chirp)
+    {
+        $chirp->load(['user', 'comments.user', 'likes'])
+              ->loadCount(['likes', 'comments']);
+
+        return view('chirps.show', compact('chirp'));
+    }
 }

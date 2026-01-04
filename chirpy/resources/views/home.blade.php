@@ -1,61 +1,84 @@
-
 <x-layout>
-    <x-slot:title>
-        Home Feed
-    </x-slot:title>
+    <x-slot:title>Home Feed</x-slot:title>
 
-    <div class="max-w-2xl mx-auto">
-        <h1 class="text-3xl font-bold mt-8">Latest Chirps</h1>
+    <div class="max-w-3xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 gradient-text">Latest Chirps</h1>
+            <p class="text-gray-600">See what's happening in your world</p>
+        </div>
 
         <!-- Chirp Form -->
-       
-<!-- Chirp Form -->
-<div class="card bg-base-100 shadow mt-8">
-    <div class="card-body">
-        <form method="POST" action="/chirps">
-            @csrf
-            <div class="form-control w-full">
-                <textarea
-                    name="message"
-                    placeholder="What's on your mind?"
-                    class="textarea textarea-bordered w-full resize-none @error('message') textarea-error @enderror"
-                    rows="4"
-                    maxlength="255"
-                    required
-                >{{ old('message') }}</textarea>
+        @auth
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 animate-slide-up">
+                <form method="POST" action="/chirps">
+                    @csrf
+                    <div class="flex gap-4">
+                        <img src="{{ auth()->user()->avatar_url }}" 
+                             alt="{{ auth()->user()->name }}" 
+                             class="w-12 h-12 rounded-full">
+                        
+                        <div class="flex-1">
+                            <textarea
+                                name="message"
+                                placeholder="What's on your mind?"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none @error('message') border-red-500 @enderror"
+                                rows="3"
+                                maxlength="255"
+                                required
+                            >{{ old('message') }}</textarea>
 
-                @error('message')
-                    <div class="label">
-                        <span class="label-text-alt text-error">{{ $message }}</span>
+                            @error('message')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+
+                            <div class="flex justify-between items-center mt-3">
+                                <span class="text-sm text-gray-500">
+                                    <span class="font-medium">Tip:</span> Keep it short and sweet (max 255 chars)
+                                </span>
+                                <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-full font-semibold hover:bg-purple-700 transition-all duration-300 hover:shadow-lg">
+                                    Chirp
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                @enderror
+                </form>
             </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <button type="submit" class="btn btn-primary btn-sm">
-                    Chirp
-                </button>
+        @else
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-md p-8 mb-8 text-white text-center">
+                <h2 class="text-2xl font-bold mb-3">Join Chirper Today!</h2>
+                <p class="mb-6">Sign up to start sharing your thoughts with the world</p>
+                <div class="flex justify-center gap-4">
+                    <a href="{{ route('register') }}" class="px-8 py-3 bg-white text-purple-600 rounded-full font-semibold hover:bg-gray-100 transition-all">
+                        Sign Up
+                    </a>
+                    <a href="{{ route('login') }}" class="px-8 py-3 bg-transparent border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-purple-600 transition-all">
+                        Sign In
+                    </a>
+                </div>
             </div>
-        </form>
-    </div>
-</div>
+        @endauth
 
         <!-- Feed -->
-        <div class="space-y-4 mt-8">
+        <div class="space-y-4">
             @forelse ($chirps as $chirp)
                 <x-chirp :chirp="$chirp" />
             @empty
-                <div class="hero py-12">
-                    <div class="hero-content text-center">
-                        <div>
-                            <svg class="mx-auto h-12 w-12 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                            </svg>
-                            <p class="mt-4 text-base-content/60">No chirps yet. Be the first to chirp!</p>
-                        </div>
-                    </div>
+                <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+                    <div class="text-6xl mb-4">🐦</div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No chirps yet</h3>
+                    <p class="text-gray-600">Be the first to share something!</p>
                 </div>
             @endforelse
         </div>
+
+        <!-- Load More -->
+        @if($chirps->count() >= 50)
+            <div class="mt-8 text-center">
+                <button class="px-6 py-3 text-purple-600 font-semibold hover:text-purple-700 transition-colors">
+                    Load More Chirps
+                </button>
+            </div>
+        @endif
     </div>
 </x-layout>
